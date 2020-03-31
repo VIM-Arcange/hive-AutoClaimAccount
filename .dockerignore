@@ -1,0 +1,7 @@
+.git
+node_modules
+.env.example
+.idea
+.editorconfig
+.eslintrc.js
+.gitignore

@@ -43,7 +43,7 @@ If you want to inspect container logs, type `docker logs autoclaim`
 
 ### Technologies
 - Node JS
-- dSteem
+- dhive
 - Docker (optional)
 
 ### Contributing

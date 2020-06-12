@@ -1,4 +1,4 @@
-const { Client, PrivateKey, Asset } = require('dsteem');
+const { Client, PrivateKey, Asset } = require('@hivechain/dhive');
 const dotnev = require('dotenv');
 
 dotnev.config();
@@ -23,7 +23,7 @@ async function getRC(username) {
 const startProcessing = async () => {
   const op = ['claim_account', {
     creator: config.HIVE_ACCOUNT,
-    fee: Asset.from('0.000 STEEM'),
+    fee: Asset.from('0.000 HIVE'),
     extensions: [],
   }];  
 

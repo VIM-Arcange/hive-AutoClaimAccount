@@ -1,7 +1,7 @@
 {
-  "name": "steem-AutoCreateAccount",
+  "name": "hive-AutoCreateAccount",
   "version": "1.0.0",
-  "description": "Automatically claim post HF20 Steem blockchain discounted accounts",
+  "description": "Automatically claim post HF20 Hive blockchain discounted accounts",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"
@@ -9,12 +9,12 @@
   "author": "Arcange",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "8.2.0",
-    "dsteem": "0.11.3"
+    "@hivechain/dhive": "^0.13.4",
+    "dotenv": "8.2.0"
   },
   "devDependencies": {
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.2.0",
-    "eslint-plugin-import": "^2.20.2"
+    "eslint-plugin-import": "^2.21.2"
   }
 }

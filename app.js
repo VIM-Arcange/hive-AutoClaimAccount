@@ -1,9 +1,15 @@
-const { Client, PrivateKey, Asset } = require('@hivechain/dhive');
+const { Client, PrivateKey, Asset } = require('@hiveio/dhive');
 const dotnev = require('dotenv');
 
 dotnev.config();
 
-const client = new Client('https://api.hive.blog');
+const hiveClient = new Client('https://api.hive.blog');
+hiveClient.database.getVersion().then((res) => {
+  //console.log("blockchain version",res.blockchain_version)
+  if (res.blockchain_version !== '0.23.0') {
+    hiveClient.updateOperations(true)
+  }
+})
 
 const config = {
   HIVE_ACCOUNT: process.env.HIVE_ACCOUNT,
@@ -17,7 +23,7 @@ const log = (message) => {
 
 // Returns an account's Resource Credits data
 async function getRC(username) {
-  return client.call('rc_api', 'find_rc_accounts', { accounts: [username] });
+  return hiveClient.call('rc_api', 'find_rc_accounts', { accounts: [username] });
 }
 
 const startProcessing = async () => {
@@ -34,7 +40,7 @@ const startProcessing = async () => {
       const rc = Number(ac.rc_accounts[0].rc_manabar.current_mana);
       log(config.HIVE_ACCOUNT + '\'s RC is ' + rc.toString());
       if( rc > config.RC_THRESHOLD * 1000000000000 ) {
-        client.broadcast.sendOperations([op], PrivateKey.from(config.ACTIVE_WIF))
+        hiveClient.broadcast.sendOperations([op], PrivateKey.from(config.ACTIVE_WIF))
         .then((res) => {
           console.log(res);
           log('You have successfully claimed a discounted account');

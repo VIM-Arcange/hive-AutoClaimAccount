@@ -1,7 +1,7 @@
 # hive-AutoClaimAccount
 Automatically claim Hive blockchain discounted accounts  
 
-This app is built to regularly check your available Resource Credits (RC) and claim for an account creation ticket if your RC is above a predifined threshold.
+This app is built to regularly check your available Resource Credits (RC) and claim for an account creation ticket if your RC is above a predefined threshold.
 
 ### How to Use
 

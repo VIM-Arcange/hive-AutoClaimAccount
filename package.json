@@ -9,7 +9,7 @@
   "author": "Arcange",
   "license": "MIT",
   "dependencies": {
-    "@hiveio/dhive": "^0.14.12",
+    "@hiveio/dhive": "^1.0.0",
     "dotenv": "8.2.0"
   },
   "devDependencies": {

@@ -4,5 +4,5 @@
 .idea
 
 # Files
-.env
+config.json
 ecosystem.config.js

@@ -1,58 +1,118 @@
 const { Client, PrivateKey, Asset } = require('@hiveio/dhive');
-const dotnev = require('dotenv');
+const keys = require("../hive-keys.js")
 
-dotnev.config();
+const fs = require('fs');
+let config = JSON.parse(fs.readFileSync('config.json'));
+
+const nodemailer = require("nodemailer")
+const email = config.email;
+const smtp = nodemailer.createTransport({
+  host: email.smtp,
+  port: email.port,
+  secure: false,
+  ignoreTLS: true
+})
 
 const hiveClient = new Client('https://api.hive.blog');
-const config = {
-  HIVE_ACCOUNT: process.env.HIVE_ACCOUNT,
-  ACTIVE_WIF: process.env.ACTIVE_WIF,
-  RC_THRESHOLD: process.env.RC_THRESHOLD,
-};
 
-const log = (message) => {
-  console.log(`${new Date().toString()} - ${message}`);
-};
+const bDebug = process.env.DEBUG==="true"
 
-// Returns an account's Resource Credits data
-async function getRC(username) {
-  return hiveClient.call('rc_api', 'find_rc_accounts', { accounts: [username] });
+const msSecond = 1 * 1000
+const msMinute = 60 * msSecond
+const msHour = 60 * msMinute
+const second = 1
+const minute = 60 * second
+const hour = 60 * minute
+
+async function notify(subject,body="") {
+  try {
+    const info = await smtp.sendMail({
+      from: email.from,
+      to: email.to,
+      subject: subject,
+      text: body,
+      html: body
+    })
+  } 
+  catch(e) {
+    console.error(e)
+  }
 }
 
-const startProcessing = async () => {
-  const op = ['claim_account', {
-    creator: config.HIVE_ACCOUNT,
-    fee: Asset.from('0.000 HIVE'),
-    extensions: [],
-  }];  
+function datetoISO(date) {
+  return date.toISOString().replace(/T|Z/g," ")
+}
 
+function log(message) {
+  console.log(`${datetoISO(new Date())} - ${message}`)
+}
+
+function logerror(message, info="") {
+  console.error(`${datetoISO(new Date())} - ${message}`)
+  if(!bDebug) {
+    notify(`[hive-AutoClaimAccount] ${message}`, info)
+  }
+}
+
+function logdebug(message) {
+  if(bDebug || config.debug) console.log(`${datetoISO(new Date())} - ${message}`);
+}
+
+const service = async () => {
   try {
-    // Load account info
-    const ac = await getRC(config.HIVE_ACCOUNT);
-    if (ac.rc_accounts.length > 0) {
-      const rc = Number(ac.rc_accounts[0].rc_manabar.current_mana);
-      log(config.HIVE_ACCOUNT + '\'s RC is ' + rc.toString());
-      if( rc > config.RC_THRESHOLD * 1000000000000 ) {
-        hiveClient.broadcast.sendOperations([op], PrivateKey.from(config.ACTIVE_WIF))
-        .then((res) => {
-          console.log(res);
-          log('You have successfully claimed a discounted account');
-        })
-        .catch(err => {
-          log(err);
-        });
-      }
+    // Reload config
+    config = JSON.parse(fs.readFileSync('config.json'))
+    // Get Accounts RCs
+    const result = await hiveClient.call('rc_api', 'find_rc_accounts', { accounts: config.accounts.filter(o => o.active).map(o => o.name) })
+
+    for(item of result.rc_accounts) {
+      const rcp = Number(item.rc_manabar.current_mana) / Number(item.max_rc) * 100
+      const min_rc = config.accounts.find(o => o.name==item.account).min_rc || 99
+      logdebug(`${item.account}\t- rc=${rcp.toFixed(2)} min_rc=${min_rc}`)
+      if( rcp >= min_rc ) {
+        const op = [
+          'claim_account', 
+          {
+            creator: item.account,
+            fee: Asset.from('0.000 HIVE'),
+            extensions: []
+          }
+        ]
+
+        try {
+          const privateKey = PrivateKey.fromString(keys.find(o => o.name==item.account).active)
+          const res  = await hiveClient.broadcast.sendOperations([op], privateKey)
+          log(`${item.account} successfully claimed a discounted account (txid=${res.id})`);
+        } catch(e) {
+          logerror(`claim_account failed for ${item.account}: ${e.message}`, JSON.stringify(op))
+        }
+      } 
     }
   } catch (e) {
-    log(e.message);
+    logerror(e.message)
   }
-};
+}
+
+async function test() {
+  service()
+}
 
 (async () => {
-  log("Process Started ")
-  console.log("user: " + config.HIVE_ACCOUNT + " - Thresold: " + config.RC_THRESHOLD.toString())
-  startProcessing();
+  if(bDebug) {
+    log("Debug Started ")
+    test()
+  } else {
+    if((config.interval || 0) < 60) {
+      config.interval = 300
+    }
 
-  // Running `startProcessing` function every hour
-  setInterval(startProcessing, 1 * 60 * 60 * 1000);
-})();
+    log("Service Started ")
+    log(`HTTP Node: ${config.node}`)
+    log(`Interval: ${config.interval} seconds`)
+    for(account of config.accounts) log(`Account: ${account.name}`)
+
+    service();
+    //Running `service` function every INTERVAL minutes
+    setInterval(service, config.interval * msSecond)
+  }
+})()

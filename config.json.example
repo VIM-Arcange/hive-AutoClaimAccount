@@ -1,0 +1,15 @@
+{
+	"node":"https://api.hive.blog",
+	"interval": 1800,
+	"debug": 0,
+	"email": {
+		"from": "from@domain.com",
+		"to": "to@domain.com",
+		"smtp": "smtp.domain.com",
+		"port": 25
+	},
+	"accounts": [
+		{ "name":"account1",	"active":1, "min_rc": 80, "notify":0, "debug":0 },
+		{ "name":"account2",	"active":1, "min_rc": 95, "notify":0, "debug":0 }
+	]
+}

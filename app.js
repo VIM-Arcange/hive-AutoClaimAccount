@@ -13,7 +13,7 @@ const smtp = nodemailer.createTransport({
   ignoreTLS: true
 })
 
-const hiveClient = new Client('https://api.hive.blog');
+const hiveClient = new Client(config.nodes);
 
 const bDebug = process.env.DEBUG==="true"
 

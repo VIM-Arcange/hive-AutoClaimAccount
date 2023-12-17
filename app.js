@@ -65,7 +65,7 @@ const service = async () => {
     // Get Accounts RCs
     const result = await hiveClient.call('rc_api', 'find_rc_accounts', { accounts: config.accounts.filter(o => o.active).map(o => o.name) })
 
-    for(item of result.rc_accounts) {
+    for(const item of result.rc_accounts) {
       const rcp = Number(item.rc_manabar.current_mana) / Number(item.max_rc) * 100
       const min_rc = config.accounts.find(o => o.name==item.account).min_rc || 99
       logdebug(`${item.account}\t- rc=${rcp.toFixed(2)} min_rc=${min_rc}`)
@@ -94,7 +94,7 @@ const service = async () => {
 }
 
 async function test() {
-  service()
+  await service()
 }
 
 (async () => {
@@ -109,7 +109,7 @@ async function test() {
     log("Service Started ")
     log(`HTTP Node: ${config.node}`)
     log(`Interval: ${config.interval} seconds`)
-    for(account of config.accounts) log(`Account: ${account.name}`)
+    for(const account of config.accounts) log(`Account: ${account.name}`)
 
     service();
     //Running `service` function every INTERVAL minutes

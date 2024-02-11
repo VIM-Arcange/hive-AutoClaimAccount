@@ -24,6 +24,14 @@ const second = 1
 const minute = 60 * second
 const hour = 60 * minute
 
+function getRndInteger(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) ) + min;
+}
+
+async function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function notify(subject,body="") {
   try {
     const info = await smtp.sendMail({
@@ -33,7 +41,7 @@ async function notify(subject,body="") {
       text: body,
       html: body
     })
-  } 
+  }
   catch(e) {
     console.error(e)
   }
@@ -71,7 +79,7 @@ const service = async () => {
       logdebug(`${item.account}\t- rc=${rcp.toFixed(2)} min_rc=${min_rc}`)
       if( rcp >= min_rc ) {
         const op = [
-          'claim_account', 
+          'claim_account',
           {
             creator: item.account,
             fee: Asset.from('0.000 HIVE'),
@@ -83,10 +91,11 @@ const service = async () => {
           const privateKey = PrivateKey.fromString(keys.find(o => o.name==item.account).active)
           const res  = await hiveClient.broadcast.sendOperations([op], privateKey)
           log(`${item.account} successfully claimed a discounted account (txid=${res.id})`);
+          await sleep(getRndInteger(3,9) * msSecond)
         } catch(e) {
           logerror(`claim_account failed for ${item.account}: ${e.message}`, JSON.stringify(op))
         }
-      } 
+      }
     }
   } catch (e) {
     logerror(e.message)

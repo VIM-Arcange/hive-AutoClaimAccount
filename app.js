@@ -91,7 +91,7 @@ const service = async () => {
           const privateKey = PrivateKey.fromString(keys.find(o => o.name==item.account).active)
           const res  = await hiveClient.broadcast.sendOperations([op], privateKey)
           log(`${item.account} successfully claimed a discounted account (txid=${res.id})`);
-          await sleep(getRndInteger(3,9) * msSecond)
+          await sleep(getRndInteger(6,21) * msSecond)
         } catch(e) {
           logerror(`claim_account failed for ${item.account}: ${e.message}`, JSON.stringify(op))
         }
